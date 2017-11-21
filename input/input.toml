@@ -12,11 +12,21 @@
    # Number of model parameters.
    #==================================================================================
    # 6 (moment tensor, M), 9 (M plus location), 10 (M plus location plus time).
-   n = 10
+   dim = 10
 
    #==================================================================================
-   # Tuning parameters.
+   # General Monte Carlo parameters.
    #==================================================================================
+   # Number of samples.
+   n_samples = 10000
+
+   #==================================================================================
+   # HMC Tuning parameters.
+   #==================================================================================
+   # HMC trajectory time increment.
+   hmc_dt = 0.1
+   # HMC number of trajectory time steps.
+   hmc_nt = 100
    # HMC gravitational constant (large: optimisation, small: exploration).
    hmc_gamma = 1.0
    # HMC mass matrix regularisation (small: little regularisation, large: mass matrix=identity).
@@ -37,6 +47,10 @@
    sigma_lat = 2.0
    sigma_lon = 2.0
    sigma_depth = 4.0
+   # Scaling factors multiplying the values given above (for better conditioning).
+   scale_lat = 1.0
+   scale_lon = 1.0
+   scale_depth = 1000.0
 
    #==================================================================================
    # Moment tensor.
@@ -44,7 +58,9 @@
    # Prior means of Mxx, Mxy, Mxz, Myy, Myz, Mzz [Nm].
    M = [-0.7787, -0.1706, 1.4654, -4.2790, 4.3437, 5.0577]
    # Prior standard deviations of Mxx, Mxy, Mxz, Myy, Myz, Mzz [Nm].
-   sigma_M = [5.0, 5.0, 5.0, 5.0, 5.0, 1.0]
+   sigma_M = [5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
+   # Scaling factors multiplying the values given above (for better conditioning).
+   scale_M = [1.0e16, 1.0e16, 1.0e16, 1.0e16, 1.0e16, 1.0e16]
 
    #==================================================================================
    # Origin time.
@@ -53,11 +69,5 @@
    t = 0.0
    # Prior standard deviation [s].
    sigma_t = 4.0
-
-   #==================================================================================
-   # Source-time function coefficients.
-   #==================================================================================
-   # Prior means.
-   s = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-   # Prior standard deviations.
-   sigma_s = [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3]
+   # Scaling factor multiplying the values given above (for better conditioning).
+   scale_t = 0.1

@@ -19,10 +19,6 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
 
     #- Number of burn-in samples to be ignored.
     nbi=burn_in_samples
-
-    #- Incremental displacement for duplicate points.
-    epsilon_1=0.0003
-    epsilon_2=0.0003
     
     #- Names of parameters.
     names=["Mxx","Mxy","Mxz","Myy","Myz","Mzz","lon","lat","z","t0","s0","s1","s2","s3","s4","s5","s6","s7","s8","s9"]
@@ -42,49 +38,46 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
     #- Read samples and plot trajectory.
     #============================================================
 
-    fid=open('OUTPUT/samples.txt','r')
+    fid=open('../output/samples.txt','r')
     dummy=fid.read().strip().split()
     fid.close()
 
     dimension=int(dummy[0])
     iterations=int(dummy[1])-nbi
+    effective_iterations=(len(dummy)-2)/(dimension+2)-nbi
 
     x=np.zeros(iterations)
     y=np.zeros(iterations)
 
-    x_plot=np.zeros(iterations)
-    y_plot=np.zeros(iterations)
-
     q_opt=np.zeros(dimension)
     chi=1.0e100
 
-    for i in range(iterations):
+    idx=0
 
-        x[i]=float(dummy[2+dim_1+(i+nbi)*(dimension+1)])
-        y[i]=float(dummy[2+dim_2+(i+nbi)*(dimension+1)])
-        x_plot[i]=x[i];
-        y_plot[i]=y[i];
+    for i in range(effective_iterations):
 
-        chi_test=float(dummy[2+(dimension)+(i+nbi)*(dimension+1)])
+        multiplicity=int(dummy[2+(dimension+1)+(i+nbi)*(dimension+2)])
+        
+        for k in range(idx,idx+multiplicity):
+            x[k]=float(dummy[2+dim_1+(i+nbi)*(dimension+2)])
+            y[k]=float(dummy[2+dim_2+(i+nbi)*(dimension+2)])
+
+        idx=idx+multiplicity
+
+        chi_test=float(dummy[2+(dimension)+(i+nbi)*(dimension+2)])
         if (chi_test<chi):
             chi=chi_test
-            #print i, ': chi_min=', chi
-            for k in range(dimension):
-                q_opt[k]=float(dummy[2+k+(i+nbi)*(dimension+1)])
-	
-        if (i>0 and x[i]==x[i-1] and y[i]==y[i-1]):
-            x_plot[i]+=epsilon_1*random.gauss(0.0,1.0)
-            y_plot[i]+=epsilon_2*random.gauss(0.0,1.0)
+            for k in range(dimension): q_opt[k]=float(dummy[2+k+(i+nbi)*(dimension+2)])	
 
     if trajectory:
 
-        plt.plot(x_plot,y_plot,'k')
-        plt.plot(x_plot,y_plot,'ro')
+        plt.plot(x,y,'k')
+        plt.plot(x,y,'ro')
         plt.axis('equal')
         plt.xlabel(names[dim_1])
         plt.ylabel(names[dim_2])
         plt.title('random walk trajectory')
-        plt.savefig('OUTPUT/trajectory.png')
+        plt.savefig('../output/trajectory.png')
         plt.close()
 
     #============================================================
@@ -95,7 +88,7 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
 
         print "-- optimal model --"
 
-        fid=open('OUTPUT/optimal_model.txt','w')
+        fid=open('../output/optimal_model.txt','w')
 
         for k in range(dimension):
             print names[k]+"="+str(q_opt[k])
@@ -114,14 +107,14 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
     #plt.xlim([-xlim,xlim])
     plt.xlabel(names[dim_1])
     plt.ylabel('posterior marginal')
-    plt.savefig('OUTPUT/marginal_'+names[dim_1]+'.png')
+    plt.savefig('../output/marginal_'+names[dim_1]+'.png')
     plt.close()
 
     plt.hist(y,bins=25,color='k',normed=True)
     #plt.xlim([-ylim,ylim])
     plt.xlabel(names[dim_2])
     plt.ylabel('posterior marginal')
-    plt.savefig('OUTPUT/marginal_'+names[dim_2]+'.png')
+    plt.savefig('../output/marginal_'+names[dim_2]+'.png')
     plt.close()
 
     plt.hist2d(x,y,bins=15,normed=True,cmap='binary')
@@ -130,7 +123,7 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
     plt.ylabel(names[dim_2])
     plt.title('2D posterior marginal')
     plt.colorbar()
-    plt.savefig('OUTPUT/marginal_2D_'+names[dim_1]+'_'+names[dim_2]+'.png')
+    plt.savefig('../output/marginal_2D_'+names[dim_1]+'_'+names[dim_2]+'.png')
     plt.close()
 
     #============================================================
@@ -153,7 +146,7 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
         plt.semilogy(n,diff,'k')
         plt.xlabel('samples')
         plt.ylabel('difference to final')
-        plt.savefig('OUTPUT/convergence1.png')
+        plt.savefig('../output/convergence1.png')
         plt.close()
 
 
@@ -169,7 +162,7 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
         plt.semilogy(n,diff,'k')
         plt.xlabel('samples')
         plt.ylabel('difference to final')
-        plt.savefig('OUTPUT/convergence2.png')
+        plt.savefig('../output/convergence2.png')
         plt.close()
 
     #============================================================
