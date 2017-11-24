@@ -6,12 +6,231 @@
 #include "mc.hpp"
 #include "aux.hpp"
 
+
+/********************************************************************************//**
+* Derived class for Monte Carlo inversion methods.
+************************************************************************************/
+
+/* Write a sample to an open file. ------------------------------------------------*/
+void MonteCarlo::write_sample(FILE *pfile, double misfit, int iteration, int multiplicity)
+{
+    if (iteration==0) fprintf(pfile,"%d %d\n",in.dim,in.n_samples+1);
+    
+    for (int i=0; i<in.dim; i++) fprintf(pfile,"%lg ",in.scale_q[i]*q[i]);
+    fprintf(pfile,"%lg %d\n",misfit,multiplicity);
+}
+
+/********************************************************************************//**
+* Derived class for Hamiltonian Monte Carlo inversion.
+************************************************************************************/
+
+/* Constructor. -------------------------------------------------------------------*/
+HMC::HMC(const char *input_filename)
+{
+    /* Read input. ----------------------------------------------------------------*/
+    in.read(input_filename);
+    
+    /* Allocate memory. -----------------------------------------------------------*/
+    p=new double[in.dim];
+    p_new=new double[in.dim];
+    q=new double[in.dim];
+    q_new=new double[in.dim];
+    m=new double[in.dim];
+    
+    /* Initialise random number generator. ----------------------------------------*/
+    srand (time(0));
+    
+    /* Regularisation / prior. ----------------------------------------------------*/
+    for (int i=0; i<in.dim; i++) in.A[i][i]+=in.A[i][i]+0.5/(in.sigma_q[i]*in.sigma_q[i]);
+    
+    /* Initialise mass matrix. ----------------------------------------------------*/
+    for (int i=0; i<in.dim; i++) m[i]=in.hmc_gamma*(in.A[i][i]+in.hmc_reg);
+    
+    /* Initialise models and momenta. ---------------------------------------------*/
+    for (int i=0; i<in.dim; i++)
+    {
+        p_new[i]=randn(0.0,sqrt(m[i]));             /* Momentum according to mass matrix. */
+        q_new[i]=randn(in.mean_q[i],in.sigma_q[i]); /* Radom start around prior mean. */
+        q[i]=q_new[i];
+    }
+}
+
+/* Destructor. -------------------------------------------------------------------*/
+HMC::~HMC()
+{
+    if (p) delete[] p;
+    if (p_new) delete[] p_new;
+    if (q) delete[] q;
+    if (q_new) delete[] q_new;
+    if (m) delete[] m;
+}
+
+/* Right-hand sides of Hamilton equations. ----------------------------------------*/
+void HMC::dHdp(double *p_in, double *rhs)
+{
+    for (int i=0; i<in.dim; i++) rhs[i]=p_in[i]/m[i];
+}
+
+void HMC::dHdq(double *q_in, double *rhs)
+{
+    /* March through components. */
+    for (int k=0; k<in.dim; k++)
+    {
+        rhs[k]=in.B[k];
+        for (int i=0; i<in.dim; i++) rhs[k]+=(q_in[i]-in.mean_q[i])*in.A[i][k];
+    }
+}
+
+/* Leap-frog integration of Hamilton's equations. ---------------------------------*/
+void HMC::leap_frog(bool output_trajectory)
+{
+    /* Local variables and setup. -------------------------------------------------*/
+    
+    int it;
+    FILE *pfile;
+    double angle1, angle2;
+    double* out=new double[in.dim];
+    double* p_half=new double[in.dim];
+    double* p_init=new double[in.dim];
+    double* q_init=new double[in.dim];
+    
+    if (output_trajectory) pfile=fopen("../output/trajectory.txt","a");
+    
+    /* Set initial values (current state). ----------------------------------------*/
+    
+    for (int i=0; i<in.dim; i++)
+    {
+        p_init[i]=p[i];
+        q_init[i]=q[i];
+    }
+    
+    /* March forward. -------------------------------------------------------------*/
+    
+    if (output_trajectory)
+    {
+        for (int i=0; i<2*in.dim; i++) fprintf(pfile,"0.0 ");
+        fprintf(pfile,"\n");
+    }
+    
+    dHdq(q_init,out);
+    
+    for (it=0; it<in.hmc_nt; it++)
+    {
+        /* Some output. */
+        if (output_trajectory)
+        {
+            for (int i=0; i<in.dim; i++) fprintf(pfile,"%lg ",q_init[i]);
+            for (int i=0; i<in.dim; i++) fprintf(pfile,"%lg ",p_init[i]);
+            fprintf(pfile,"\n");
+        }
+        
+        /* First half step in momentum. */
+        for (int i=0; i<in.dim; i++) p_half[i]=p_init[i]-0.5*in.hmc_dt*out[i];
+        
+        /* Full step in position. */
+        dHdp(p_half,out);
+        for (int i=0; i<in.dim; i++) q_new[i]=q_init[i]+in.hmc_dt*out[i];
+       
+        /* Second half step in momentum. */
+        dHdq(q_new,out);
+        for (int i=0; i<in.dim; i++) p_new[i]=p_half[i]-0.5*in.hmc_dt*out[i];
+       
+        /* Update position and momentum. */
+        for (int i=0; i<in.dim; i++)
+        {
+            p_init[i]=p_new[i];
+            q_init[i]=q_new[i];
+        }
+        
+        /* Check no-U-turn criterion. */
+        angle1=0.0;
+        angle2=0.0;
+        for (int i=0; i<in.dim; i++)
+        {
+            angle1+=p_new[i]*(q_new[i]-q[i]);
+            angle2+=p[i]*(q[i]-q_new[i]);
+        }
+        
+        if (angle1<0.0 && angle2<0.0) break;
+    }
+    
+    if (in.verbose) printf("integration steps: %d\n",it);
+    
+    /* Transcribe values. ---------------------------------------------------------*/
+    
+    for (int i=0; i<in.dim; i++)
+    {
+        q[i]=q_new[i];
+        p[i]=p_new[i];
+    }
+    
+    /* Clean up. ------------------------------------------------------------------*/
+    
+    if (output_trajectory) fclose(pfile);
+    
+    delete[] q_init;
+    delete[] p_half;
+    delete[] p_init;
+    delete[] out;
+}
+
+/* Proposal based on the solution of Hamilton's equation. -------------------------*/
+void HMC::propose()
+{
+    /* Draw random prior momenta. */
+    for (int i=0; i<in.dim; i++) p[i]=randn(0.0,sqrt(m[i]));
+    
+    /* Integrate Hamilton's equations. */
+    //leap_frog(in.verbose);
+}
+
+/* Misfit for Hamiltonian Monte Carlo. --------------------------------------------*/
+double HMC::energy()
+{
+    /* Local variables. */
+    double H;
+    
+    /* Compute energy - model part. */
+    H=0.5*in.C;
+    
+    for (int i=0; i<in.dim; i++)
+    {
+        H+=(q[i]-in.mean_q[i])*in.B[i];
+        for (int j=0; j<in.dim; j++) H+=0.5*(q[i]-in.mean_q[i])*(q[j]-in.mean_q[j])*in.A[i][j];
+    }
+    
+    /* Compute energy - momentum part. */
+    for (int i=0; i<in.dim; i++) H+=0.5*p[i]*p[i]/m[i];
+    
+    return H;
+}
+
+/* Potential energy, i.e. posterior. ---------------------------------------------*/
+double HMC::potential_energy()
+{
+    /* Local variables. */
+    double U;
+    
+    /* Compute energy - model part. */
+    U=0.5*in.C;
+    
+    for (int i=0; i<in.dim; i++)
+    {
+        U+=(q[i]-in.mean_q[i])*in.B[i];
+        for (int j=0; j<in.dim; j++) U+=0.5*(q[i]-in.mean_q[i])*(q[j]-in.mean_q[j])*in.A[i][j];
+    }
+    
+    return U;
+}
+
+
+
 /********************************************************************************//**
  * Base class for Monte Carlo sampling.
 ************************************************************************************/
 
 /* Constructor. -------------------------------------------------------------------*/
-mc::mc(input &in)
+mc::mc(Input &in)
 {
     verbose = false;
     

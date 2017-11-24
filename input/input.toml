@@ -6,7 +6,7 @@
    # Method.
    #==================================================================================
    # HMC (Hamiltonian Monte Carlo), MH (Metropolis-Hastings), LIN (linear system).
-   method = "HMC"
+   method = "HMC_new"
 
    #==================================================================================
    # Number of model parameters.
@@ -21,7 +21,7 @@
    n_samples = 10000
 
    #==================================================================================
-   # HMC Tuning parameters.
+   # HMC-specific parameters.
    #==================================================================================
    # HMC trajectory time increment.
    hmc_dt = 0.1
@@ -31,6 +31,12 @@
    hmc_gamma = 1.0
    # HMC mass matrix regularisation (small: little regularisation, large: mass matrix=identity).
    hmc_reg = 0.1
+
+   #==================================================================================
+   # Output.
+   #==================================================================================
+   # Write basic screen output (“yes” or “no”).
+   verbose = "no"
 
 #=====================================================================================
 # Source parameters.

@@ -6,13 +6,14 @@
 /* Input. -------------------------------------------------------------------------*/
 /*=================================================================================*/
 
-class input
+class Input
 {
 public:
     
     /** General setup. */
     char method[10];                        /**< Inversion method (HMC, MH, LIN). */
     int dim;                                /**< Model space dimension. */
+    bool verbose;                           /**< Write basic screen output. */
     
     /** Model parameters. */
     double *mean_q;                         /**< Prior means. */
@@ -34,9 +35,13 @@ public:
     double hmc_gamma;                       /**< HMC gravitational constant. */
     double hmc_reg;                         /**< HMC mass matrix regularisation. */
     
+    /** Read input from file. */
+    void read(const char *input_filename);       /**< Read input from "input_file". */
+    
     /** Constructor and destructor. */
-    input(const char *input_filename);
-    ~input();
+    Input(const char *input_filename);      /**< Read input during construction. */
+    Input();                                /**< Do-nothing constructor. */
+    ~Input();
 };
 
 /*=================================================================================*/
