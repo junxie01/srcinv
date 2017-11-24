@@ -30,10 +30,13 @@ public:
     
     /** Monte Carlo-specific parameters. */
     int n_samples;                          /**< Maximum number of samples. */
-    double hmc_dt;                          /**< HMC trajectory time increment. */
+    
+    /**< HMC-specific parameters. */
     int hmc_nt;                             /**< HMC maximum number of trajectory time steps. */
+    double hmc_dt;                          /**< HMC trajectory time increment. */
     double hmc_gamma;                       /**< HMC gravitational constant. */
     double hmc_reg;                         /**< HMC mass matrix regularisation. */
+    bool hmc_output_trajectory;                 /**< Write trajectory to a file. */
     
     /** Read input from file. */
     void read(const char *input_filename);       /**< Read input from "input_file". */

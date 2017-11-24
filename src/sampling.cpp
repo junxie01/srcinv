@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 {
     /* Check input. -------------------------------------------------------------------*/
     //input in(argv[1]);
-    Input in;
+    Input in;               //// May be later deleted.
     in.read(argv[1]);
     clock_t start=clock();
     bool verbose = false;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
             /* Check Metropolis rule. */
             if ((H_new<H) || (exp(H-H_new)>randf(0.0,1.0)))
             {
-                hmc.leap_frog(hmc.in.verbose);
+                hmc.leap_frog();
                 U=hmc.potential_energy();
                 hmc.write_sample(pfile,U,it+1,multiplicity);
                 
@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
                 accepted++;
             }
             else multiplicity++;
+        }
         
         printf("accepted: %d\n",accepted);
         fclose(pfile);

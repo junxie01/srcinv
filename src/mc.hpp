@@ -60,10 +60,8 @@ public:
     );
     
     /* Leap-frog integration of Hamilton's equations with initial positions and momenta. */
-    void leap_frog(
-                   bool output_trajectory      /**< File output or not. */
-    );
-
+    void leap_frog();
+    
     /* Proposal and energy functions. ---------------------------------------------*/
     void propose();             /**< Proposal based on Hamiltonian mechanics. */
     double energy();            /** Total energy for Hamiltonian Monte Carlo. */

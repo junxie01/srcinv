@@ -18,7 +18,7 @@
    # General Monte Carlo parameters.
    #==================================================================================
    # Number of samples.
-   n_samples = 10000
+   n_samples = 10
 
    #==================================================================================
    # HMC-specific parameters.
@@ -31,11 +31,13 @@
    hmc_gamma = 1.0
    # HMC mass matrix regularisation (small: little regularisation, large: mass matrix=identity).
    hmc_reg = 0.1
+   # Write Hamiltonian trajectory to ../output/trajectory.txt. ("yes" or "no")
+   hmc_output_trajectory = "yes"
 
    #==================================================================================
    # Output.
    #==================================================================================
-   # Write basic screen output (“yes” or “no”).
+   # Write basic screen output ("yes" or "no").
    verbose = "no"
 
 #=====================================================================================

@@ -101,11 +101,24 @@ Input::Input(const char *input_filename)
     /* Monte Carlo-specific parameters. -------------------------------------------*/
     n_samples = pr.value.find("n_samples")->as<int>();
     
-    /* HMC tuning parameters. -----------------------------------------------------*/
+    /* HMC-specific parameters. ---------------------------------------------------*/
     hmc_dt = pr.value.find("hmc_dt")->as<double>();
     hmc_nt = pr.value.find("hmc_nt")->as<int>();
     hmc_gamma = pr.value.find("hmc_gamma")->as<double>();
     hmc_reg = pr.value.find("hmc_reg")->as<double>();
+    
+    x = pr.value.find("hmc_output_trajectory");
+    std::string s_trajectory = x->as<std::string>();
+    strcpy(str,s_trajectory.c_str());
+    if (!strcmp(str,"yes"))
+    {
+        hmc_output_trajectory = true;
+    }
+    else
+    {
+        hmc_output_trajectory = false;
+    }
+
     
     /* Matrix, vector and constant. -----------------------------------------------*/
     
@@ -226,11 +239,24 @@ void Input::read(const char *input_filename)
     /* Monte Carlo-specific parameters. -------------------------------------------*/
     n_samples = pr.value.find("n_samples")->as<int>();
     
-    /* HMC tuning parameters. -----------------------------------------------------*/
+    /* HMC-specific parameters. ---------------------------------------------------*/
     hmc_dt = pr.value.find("hmc_dt")->as<double>();
     hmc_nt = pr.value.find("hmc_nt")->as<int>();
     hmc_gamma = pr.value.find("hmc_gamma")->as<double>();
     hmc_reg = pr.value.find("hmc_reg")->as<double>();
+    
+    x = pr.value.find("hmc_output_trajectory");
+    std::string s_trajectory = x->as<std::string>();
+    strcpy(str,s_trajectory.c_str());
+    if (!strcmp(str,"yes"))
+    {
+        hmc_output_trajectory = true;
+    }
+    else
+    {
+        hmc_output_trajectory = false;
+    }
+
     
     /* Matrix, vector and constant. -----------------------------------------------*/
     

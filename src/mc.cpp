@@ -82,7 +82,7 @@ void HMC::dHdq(double *q_in, double *rhs)
 }
 
 /* Leap-frog integration of Hamilton's equations. ---------------------------------*/
-void HMC::leap_frog(bool output_trajectory)
+void HMC::leap_frog()
 {
     /* Local variables and setup. -------------------------------------------------*/
     
@@ -94,7 +94,7 @@ void HMC::leap_frog(bool output_trajectory)
     double* p_init=new double[in.dim];
     double* q_init=new double[in.dim];
     
-    if (output_trajectory) pfile=fopen("../output/trajectory.txt","a");
+    if (in.hmc_output_trajectory) pfile=fopen("../output/trajectory.txt","a");
     
     /* Set initial values (current state). ----------------------------------------*/
     
@@ -106,7 +106,7 @@ void HMC::leap_frog(bool output_trajectory)
     
     /* March forward. -------------------------------------------------------------*/
     
-    if (output_trajectory)
+    if (in.hmc_output_trajectory)
     {
         for (int i=0; i<2*in.dim; i++) fprintf(pfile,"0.0 ");
         fprintf(pfile,"\n");
@@ -117,7 +117,7 @@ void HMC::leap_frog(bool output_trajectory)
     for (it=0; it<in.hmc_nt; it++)
     {
         /* Some output. */
-        if (output_trajectory)
+        if (in.hmc_output_trajectory)
         {
             for (int i=0; i<in.dim; i++) fprintf(pfile,"%lg ",q_init[i]);
             for (int i=0; i<in.dim; i++) fprintf(pfile,"%lg ",p_init[i]);
@@ -166,7 +166,7 @@ void HMC::leap_frog(bool output_trajectory)
     
     /* Clean up. ------------------------------------------------------------------*/
     
-    if (output_trajectory) fclose(pfile);
+    if (in.hmc_output_trajectory) fclose(pfile);
     
     delete[] q_init;
     delete[] p_half;
@@ -179,9 +179,6 @@ void HMC::propose()
 {
     /* Draw random prior momenta. */
     for (int i=0; i<in.dim; i++) p[i]=randn(0.0,sqrt(m[i]));
-    
-    /* Integrate Hamilton's equations. */
-    //leap_frog(in.verbose);
 }
 
 /* Misfit for Hamiltonian Monte Carlo. --------------------------------------------*/
