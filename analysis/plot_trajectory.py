@@ -40,20 +40,13 @@ def plot_trajectory(dim_1,dim_2,plot=True):
     x=np.zeros(iterations)
     y=np.zeros(iterations)
 
-    start=1
-
     for i in range(iterations):
 
         x[i]=float(dummy[dim_1+i*dimension])
         y[i]=float(dummy[dim_2+i*dimension])
 
-        if (i>0 and x[i-1]==0.0 and y[i-1]==0.0):
-            x[i-1]=x[i]
-            y[i-1]=y[i]
-
-            plt.plot(x[start:i-1],y[start:i-1],c=np.random.rand(3,1))
-            plt.plot(x[start:i-1],y[start:i-1],'ko')
-            start=i-1
+    plt.plot(x,y,c=np.random.rand(3,1))
+    plt.plot(x,y,'ko')
 
     plt.xlabel(names[dim_1])
     plt.ylabel(names[dim_2])

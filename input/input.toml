@@ -6,19 +6,19 @@
    # Method.
    #==================================================================================
    # HMC (Hamiltonian Monte Carlo), MH (Metropolis-Hastings), LIN (linear system).
-   method = "HMC_new"
+   method = "HMC_N"
 
    #==================================================================================
    # Number of model parameters.
    #==================================================================================
    # 6 (moment tensor, M), 9 (M plus location), 10 (M plus location plus time).
-   dim = 10
+   dim = 6
 
    #==================================================================================
    # General Monte Carlo parameters.
    #==================================================================================
    # Number of samples.
-   n_samples = 10
+   n_samples = 10000
 
    #==================================================================================
    # HMC-specific parameters.
@@ -27,18 +27,18 @@
    hmc_dt = 0.1
    # HMC number of trajectory time steps.
    hmc_nt = 100
-   # HMC gravitational constant (large: optimisation, small: exploration).
-   hmc_gamma = 1.0
+   # HMC integration length ("random", "fixed").
+   hmc_length = "random"
    # HMC mass matrix regularisation (small: little regularisation, large: mass matrix=identity).
-   hmc_reg = 0.1
+   hmc_reg = 0.01
    # Write Hamiltonian trajectory to ../output/trajectory.txt. ("yes" or "no")
-   hmc_output_trajectory = "yes"
+   hmc_output_trajectory = "no"
 
    #==================================================================================
    # Output.
    #==================================================================================
    # Write basic screen output ("yes" or "no").
-   verbose = "no"
+   verbose = "yes"
 
 #=====================================================================================
 # Source parameters.
@@ -52,9 +52,9 @@
    lon = 32.2
    depth = 51.0
    # Prior standard deviations of latitude [degree], longitude [degree], depth [km].
-   sigma_lat = 2.0
-   sigma_lon = 2.0
-   sigma_depth = 4.0
+   sigma_lat = 1.0
+   sigma_lon = 1.0
+   sigma_depth = 1.0
    # Scaling factors multiplying the values given above (for better conditioning).
    scale_lat = 1.0
    scale_lon = 1.0
@@ -64,11 +64,11 @@
    # Moment tensor.
    #==================================================================================
    # Prior means of Mxx, Mxy, Mxz, Myy, Myz, Mzz [Nm].
-   M = [-0.7787, -0.1706, 1.4654, -4.2790, 4.3437, 5.0577]
+   M = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
    # Prior standard deviations of Mxx, Mxy, Mxz, Myy, Myz, Mzz [Nm].
-   sigma_M = [5.0, 5.0, 5.0, 5.0, 5.0, 5.0]
+   sigma_M = [1000.1, 1000.1, 1000.1, 1000.1, 1000.1, 1000.1]
    # Scaling factors multiplying the values given above (for better conditioning).
-   scale_M = [1.0e16, 1.0e16, 1.0e16, 1.0e16, 1.0e16, 1.0e16]
+   scale_M = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
 
    #==================================================================================
    # Origin time.
@@ -76,6 +76,6 @@
    # Prior mean relative to event origin time [s].
    t = 0.0
    # Prior standard deviation [s].
-   sigma_t = 4.0
+   sigma_t = 0.1
    # Scaling factor multiplying the values given above (for better conditioning).
    scale_t = 0.1

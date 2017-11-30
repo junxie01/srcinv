@@ -3,7 +3,7 @@ import random as random
 import matplotlib.pylab as pylab
 import matplotlib.pyplot as plt
 
-def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=False,statistics=False,convergence=False):
+def plot_samples(dim_1,dim_2,burn_in_samples=50,N=100,optimal=False,trajectory=False,statistics=False,convergence=False):
     """
     dim_1, dim_2: phase space dimension
     burn_in_samples: number of burn-in samples to be omitted
@@ -43,8 +43,10 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
     fid.close()
 
     dimension=int(dummy[0])
-    iterations=int(dummy[1])-nbi
-    effective_iterations=(len(dummy)-2)/(dimension+2)-nbi
+    iterations=int(dummy[1])
+    effective_iterations=(len(dummy)-2)/(dimension+2)
+
+    print effective_iterations, iterations
 
     x=np.zeros(iterations)
     y=np.zeros(iterations)
@@ -56,18 +58,18 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
 
     for i in range(effective_iterations):
 
-        multiplicity=int(dummy[2+(dimension+1)+(i+nbi)*(dimension+2)])
+        multiplicity=int(dummy[2+(dimension+1)+i*(dimension+2)])
         
         for k in range(idx,idx+multiplicity):
-            x[k]=float(dummy[2+dim_1+(i+nbi)*(dimension+2)])
-            y[k]=float(dummy[2+dim_2+(i+nbi)*(dimension+2)])
+            x[k]=float(dummy[2+dim_1+i*(dimension+2)])
+            y[k]=float(dummy[2+dim_2+i*(dimension+2)])
 
         idx=idx+multiplicity
 
-        chi_test=float(dummy[2+(dimension)+(i+nbi)*(dimension+2)])
+        chi_test=float(dummy[2+(dimension)+i*(dimension+2)])
         if (chi_test<chi):
             chi=chi_test
-            for k in range(dimension): q_opt[k]=float(dummy[2+k+(i+nbi)*(dimension+2)])	
+            for k in range(dimension): q_opt[k]=float(dummy[2+k+i*(dimension+2)])	
 
     if trajectory:
 
@@ -100,24 +102,24 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
     #- Histograms.
     #============================================================
 
-    xlim=np.max(np.abs(x));
-    ylim=np.max(np.abs(y));
+    xlim=np.max(np.abs(x[nbi:]));
+    ylim=np.max(np.abs(y[nbi:]));
 
-    plt.hist(x,bins=25,color='k',normed=True)
+    plt.hist(x[nbi:],bins=25,color='k',normed=True)
     #plt.xlim([-xlim,xlim])
     plt.xlabel(names[dim_1])
     plt.ylabel('posterior marginal')
     plt.savefig('../output/marginal_'+names[dim_1]+'.png')
     plt.close()
 
-    plt.hist(y,bins=25,color='k',normed=True)
+    plt.hist(y[nbi:],bins=25,color='k',normed=True)
     #plt.xlim([-ylim,ylim])
     plt.xlabel(names[dim_2])
     plt.ylabel('posterior marginal')
     plt.savefig('../output/marginal_'+names[dim_2]+'.png')
     plt.close()
 
-    plt.hist2d(x,y,bins=15,normed=True,cmap='binary')
+    plt.hist2d(x[nbi:],y[nbi:],bins=15,normed=True,cmap='binary')
     #plt.axis('equal')
     plt.xlabel(names[dim_1])
     plt.ylabel(names[dim_2])
@@ -173,11 +175,11 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
 
         print "-- statistics --"
 
-        mean_x_all=np.mean(x)
-        mean_y_all=np.mean(y)
+        mean_x_all=np.mean(x[nbi:])
+        mean_y_all=np.mean(y[nbi:])
 
-        mean_x_N=np.mean(x[:N])
-        mean_y_N=np.mean(y[:N])
+        mean_x_N=np.mean(x[nbi:N+nbi])
+        mean_y_N=np.mean(y[nbi:N+nbi])
 
         cov_xx_all=0.0
         cov_yy_all=0.0
@@ -187,19 +189,19 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
         cov_yy_N=0.0
         cov_xy_N=0.0
 
-        for i in range(iterations):
-            cov_xx_all+=(mean_x_all-x[i])*(mean_x_all-x[i])
-            cov_yy_all+=(mean_y_all-y[i])*(mean_y_all-y[i])
-            cov_xy_all+=(mean_x_all-x[i])*(mean_y_all-y[i])
+        for i in range(iterations-nbi):
+            cov_xx_all+=(mean_x_all-x[nbi+i])*(mean_x_all-x[nbi+i])
+            cov_yy_all+=(mean_y_all-y[nbi+i])*(mean_y_all-y[nbi+i])
+            cov_xy_all+=(mean_x_all-x[nbi+i])*(mean_y_all-y[nbi+i])
 
         for i in range(N):
-            cov_xx_N+=(mean_x_N-x[i])*(mean_x_N-x[i])
-            cov_yy_N+=(mean_y_N-y[i])*(mean_y_N-y[i])
-            cov_xy_N+=(mean_x_N-x[i])*(mean_y_N-y[i])
+            cov_xx_N+=(mean_x_N-x[nbi+i])*(mean_x_N-x[nbi+i])
+            cov_yy_N+=(mean_y_N-y[nbi+i])*(mean_y_N-y[nbi+i])
+            cov_xy_N+=(mean_x_N-x[nbi+i])*(mean_y_N-y[nbi+i])
 
-        cov_xx_all=cov_xx_all/(iterations)
-        cov_yy_all=cov_yy_all/(iterations)
-        cov_xy_all=cov_xy_all/(iterations)
+        cov_xx_all=cov_xx_all/(iterations-nbi)
+        cov_yy_all=cov_yy_all/(iterations-nbi)
+        cov_xy_all=cov_xy_all/(iterations-nbi)
 
         cov_xx_N=cov_xx_N/N
         cov_yy_N=cov_yy_N/N
@@ -213,3 +215,4 @@ def plot_samples(dim_1,dim_2,burn_in_samples=50,N=1000,optimal=False,trajectory=
         print 'mean_x=', mean_x_N, 'mean_y=', mean_y_N
         print 'std_xx=', np.sqrt(cov_xx_N), 'std_yy=', np.sqrt(cov_yy_N), 'cov_xy=', cov_xy_N/(np.sqrt(cov_xx_N)*np.sqrt(cov_yy_N))
 
+    return x
